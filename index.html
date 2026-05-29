@@ -164,6 +164,35 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;heigh
 @keyframes bounceIn{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
 .setup-card,.level-btn,.subj-btn{animation:fadeIn 0.3s ease}
 
+/* ===== REVIEW SCREEN ===== */
+#reviewScreen{min-height:100vh;padding:20px;padding-bottom:calc(30px + env(safe-area-inset-bottom))}
+.review-header{text-align:center;padding:20px 0 16px}
+.review-header h2{font-family:'Bangers',cursive;font-size:2.2rem;letter-spacing:2px;color:var(--gold)}
+.review-header p{color:var(--muted);font-size:0.9rem;margin-top:4px}
+.review-filters{display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+.filter-btn{background:rgba(255,255,255,0.05);border:2px solid rgba(255,255,255,0.1);border-radius:20px;padding:6px 16px;color:var(--text);font-family:'Nunito',sans-serif;font-weight:700;font-size:0.82rem;cursor:pointer;transition:all 0.2s}
+.filter-btn.active{border-color:var(--gold);background:rgba(255,215,0,0.12);color:var(--gold)}
+.review-list{display:flex;flex-direction:column;gap:12px;max-width:700px;margin:0 auto}
+.review-card{background:var(--card);border-radius:14px;padding:16px;border-left:4px solid var(--muted)}
+.review-card.correct{border-left-color:var(--green)}
+.review-card.wrong{border-left-color:var(--red)}
+.review-card-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.review-result-icon{font-size:1.4rem;flex-shrink:0;margin-top:2px}
+.review-subject{font-size:0.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.review-question{font-weight:700;font-size:0.95rem;line-height:1.4}
+.review-answers{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.review-answer-row{display:flex;gap:8px;align-items:center;font-size:0.85rem}
+.review-answer-row .label{font-weight:800;width:80px;flex-shrink:0;color:var(--muted)}
+.review-answer-row .val{font-weight:700}
+.review-answer-row.correct-row .val{color:var(--green)}
+.review-answer-row.wrong-row .val{color:var(--red)}
+.review-tip{font-size:0.8rem;color:var(--muted);font-style:italic;margin-bottom:10px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:8px}
+.review-learn-btn{display:inline-block;background:rgba(255,215,0,0.1);border:1px solid var(--gold);border-radius:8px;color:var(--gold);text-decoration:none;font-weight:700;font-size:0.8rem;padding:6px 14px}
+.review-learn-btn:hover{background:rgba(255,215,0,0.2)}
+.review-back-btn{display:block;width:100%;max-width:700px;margin:20px auto 0;padding:16px;font-family:'Bangers',cursive;font-size:1.5rem;letter-spacing:2px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--dark);border:none;border-radius:var(--radius);cursor:pointer;transition:all 0.2s;box-shadow:0 6px 24px rgba(255,215,0,0.3)}
+.review-back-btn:hover{transform:translateY(-2px)}
+.review-empty{text-align:center;color:var(--muted);padding:40px 0;font-size:1rem}
+
 /* ===== MOBILE / PWA ===== */
 body{
   padding-bottom:env(safe-area-inset-bottom);
@@ -332,7 +361,32 @@ body{
     <div class="stat-card"><div class="stat-num" id="rStreak">0</div><div class="stat-label">Best Streak</div></div>
     <div class="stat-card"><div class="stat-num" id="rMonsters">0</div><div class="stat-label">Monsters Slain</div></div>
   </div>
+  <!-- Score explanation -->
+  <div style="background:var(--card);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px;max-width:380px;width:100%;margin-bottom:16px;font-size:0.82rem;color:var(--muted);text-align:left">
+    <div style="font-weight:800;color:var(--text);margin-bottom:8px">📊 How scoring works</div>
+    <div style="margin-bottom:4px">✅ <strong style="color:var(--text)">Defend correct:</strong> 10 pts + streak bonus</div>
+    <div style="margin-bottom:4px">⚔️ <strong style="color:var(--text)">Attack correct:</strong> 15 pts + streak bonus</div>
+    <div style="margin-bottom:4px">🔥 <strong style="color:var(--text)">Streak bonus:</strong> +5 pts per streak level (max 5× = +25)</div>
+    <div style="margin-bottom:4px">👾 <strong style="color:var(--text)">Monster defeated:</strong> +50 pts</div>
+    <div>❌ <strong style="color:var(--text)">Wrong answer:</strong> no points + take damage</div>
+  </div>
+  <button class="play-again-btn" style="margin-bottom:12px" onclick="showReview()">📖 REVIEW QUESTIONS</button>
   <button class="play-again-btn" onclick="playAgain()">🔄 PLAY AGAIN</button>
+</div>
+
+<!-- REVIEW SCREEN -->
+<div id="reviewScreen" class="screen">
+  <div class="review-header">
+    <h2>📖 QUESTION REVIEW</h2>
+    <p id="reviewSummaryLine">All questions from your session</p>
+  </div>
+  <div class="review-filters">
+    <button class="filter-btn active" onclick="filterReview('all', this)">All</button>
+    <button class="filter-btn" onclick="filterReview('wrong', this)">❌ Wrong only</button>
+    <button class="filter-btn" onclick="filterReview('correct', this)">✅ Correct only</button>
+  </div>
+  <div class="review-list" id="reviewList"></div>
+  <button class="review-back-btn" onclick="backToResult()">← BACK TO RESULTS</button>
 </div>
 
 <!-- INSTALL BANNER (PWA) -->
@@ -1244,8 +1298,20 @@ function startGame() {
     questionCount: 0,
     secondsLeft: chosenMinutes * 60,
     totalSeconds: chosenMinutes * 60,
+    qPool: {},        // shuffled non-repeating pools per subject
+    questionLog: [],  // {q, a, chosen, correct, learnUrl, learnTip} for review screen
   };
-  activeSubjects.forEach((_, i) => { gameState.seenQs[i] = new Set(); });
+  // Build shuffled question pools — each question appears at most once per game
+  activeSubjects.forEach((subj, i) => {
+    const indices = subj.questions.map((_,j) => j);
+    // Fisher-Yates shuffle
+    for (let k = indices.length - 1; k > 0; k--) {
+      const r = Math.floor(Math.random() * (k + 1));
+      [indices[k], indices[r]] = [indices[r], indices[k]];
+    }
+    gameState.qPool[i] = indices;
+    gameState.seenQs[i] = new Set();
+  });
   loadEnemy();
   startTimer();
 }
@@ -1292,17 +1358,32 @@ function loadEnemy() {
 function pickQuestion() {
   const si = gameState.subjectIdx;
   const subj = activeSubjects[si];
-  const seen = gameState.seenQs[si];
-  let avail = subj.questions.map((_,i) => i).filter(i => !seen.has(i));
-  if (!avail.length) { gameState.seenQs[si] = new Set(); avail = subj.questions.map((_,i) => i); }
-  const idx = avail[Math.floor(Math.random() * avail.length)];
-  seen.add(idx);
-  return subj.questions[idx];
+  // Use a per-subject pool that NEVER resets mid-game — once all seen, no more from this subject
+  if (!gameState.qPool[si]) {
+    // Shuffle all questions into a pool at game start (already done in startGame)
+  }
+  const pool = gameState.qPool[si];
+  if (!pool.length) return null; // exhausted — caller handles this
+  return subj.questions[pool.shift()]; // take from front of shuffled pool, never repeats
 }
 
 function nextQuestion() {
   gameState.answered = false;
-  gameState.currentQ = pickQuestion();
+  const q = pickQuestion();
+  if (!q) {
+    // This subject's questions exhausted — move to next subject if possible
+    if (gameState.subjectIdx < activeSubjects.length - 1) {
+      gameState.subjectIdx++;
+      loadEnemy();
+      return;
+    } else {
+      // All questions across all subjects exhausted — end game
+      clearInterval(timerInterval);
+      showResult(gameState.playerHp >= Math.max(0, gameState.enemyHp), 'exhausted');
+      return;
+    }
+  }
+  gameState.currentQ = q;
   gameState.questionCount++;
   const subj = activeSubjects[gameState.subjectIdx];
 
@@ -1332,6 +1413,18 @@ function handleAnswer(chosen, btn) {
   if (gameState.answered) return;
   gameState.answered = true;
   const correct = chosen === gameState.currentQ.a;
+
+  // Log for review screen
+  gameState.questionLog.push({
+    q: gameState.currentQ.q,
+    a: gameState.currentQ.a,
+    chosen: chosen,
+    correct: correct,
+    learnUrl: gameState.currentQ.learnUrl || '#',
+    learnTip: gameState.currentQ.learnTip || '',
+    subject: activeSubjects[gameState.subjectIdx].name,
+    icon: activeSubjects[gameState.subjectIdx].icon,
+  });
 
   // Mark correct answer
   document.querySelectorAll('.choice-btn').forEach(b => {
@@ -1513,6 +1606,9 @@ function showResult(won, reason) {
   if (reason === 'all') {
     icon.textContent = '🎓🏆'; title.textContent = 'CHAMPION!';
     msg.textContent = 'You defeated every monster across all chosen subjects! Extraordinary!';
+  } else if (reason === 'exhausted') {
+    icon.textContent = '🧠✅'; title.textContent = 'ALL QUESTIONS DONE!';
+    msg.textContent = 'You answered every unique question available! True master of the material.';
   } else if (reason === 'time') {
     if (won) {
       icon.textContent = '⏰🏆'; title.textContent = "TIME'S UP — YOU WIN!";
@@ -1539,10 +1635,77 @@ function showResult(won, reason) {
 function playAgain() {
   clearInterval(timerInterval);
   document.getElementById('resultScreen').classList.remove('active');
+  document.getElementById('reviewScreen').classList.remove('active');
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('setupScreen').classList.add('active');
   document.getElementById('eyeHealthNote').style.display = 'none';
 }
+
+let currentFilter = 'all';
+
+function showReview() {
+  document.getElementById('resultScreen').classList.remove('active');
+  document.getElementById('reviewScreen').classList.add('active');
+  currentFilter = 'all';
+  document.querySelectorAll('.filter-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+  renderReviewList('all');
+}
+
+function backToResult() {
+  document.getElementById('reviewScreen').classList.remove('active');
+  document.getElementById('resultScreen').classList.add('active');
+}
+
+function filterReview(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderReviewList(filter);
+}
+
+function renderReviewList(filter) {
+  const log = gameState.questionLog || [];
+  const filtered = filter === 'all' ? log
+    : filter === 'wrong' ? log.filter(r => !r.correct)
+    : log.filter(r => r.correct);
+
+  const total = log.length;
+  const wrong = log.filter(r => !r.correct).length;
+  const correct = total - wrong;
+  document.getElementById('reviewSummaryLine').textContent =
+    `${total} questions • ✅ ${correct} correct • ❌ ${wrong} wrong`;
+
+  const list = document.getElementById('reviewList');
+  if (!filtered.length) {
+    list.innerHTML = '<div class="review-empty">No questions match this filter.</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map((r, idx) => `
+    <div class="review-card ${r.correct ? 'correct' : 'wrong'}">
+      <div class="review-card-top">
+        <div class="review-result-icon">${r.correct ? '✅' : '❌'}</div>
+        <div style="flex:1">
+          <div class="review-subject">${r.icon} ${r.subject}</div>
+          <div class="review-question">${r.q}</div>
+        </div>
+      </div>
+      <div class="review-answers">
+        <div class="review-answer-row correct-row">
+          <span class="label">✅ Correct:</span>
+          <span class="val">${r.a}</span>
+        </div>
+        ${!r.correct ? `<div class="review-answer-row wrong-row">
+          <span class="label">❌ You said:</span>
+          <span class="val">${r.chosen}</span>
+        </div>` : ''}
+      </div>
+      ${r.learnTip ? `<div class="review-tip">💡 ${r.learnTip}</div>` : ''}
+      <a class="review-learn-btn" href="${r.learnUrl}" target="_blank">📖 Learn More</a>
+    </div>
+  `).join('');
+}
+
 
 // ===== PWA: Service Worker + Install Prompt =====
 if('serviceWorker' in navigator){
