@@ -27,6 +27,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 /* SCREENS */
 .screen{display:none;position:relative;z-index:1}
 .screen.active{display:block}
+#gameScreen{min-height:100dvh;flex-direction:column;padding:0}
+#gameScreen.active{display:flex}
+#resultScreen{min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;text-align:center}
+#resultScreen.active{display:flex}
+#reviewScreen.active{display:block}
 
 /* SETUP SCREEN */
 #setupScreen{min-height:100vh;padding:20px}
@@ -77,7 +82,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;heigh
 .start-btn:disabled{opacity:0.3;cursor:not-allowed;transform:none}
 
 /* ===== GAME SCREEN ===== */
-#gameScreen{min-height:100vh;display:flex;flex-direction:column;padding:0}
 .game-top{background:rgba(0,0,0,0.3);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06)}
 .game-subject{font-family:'Bangers',cursive;font-size:1.3rem;letter-spacing:1px;color:var(--gold)}
 .game-score-badge{background:rgba(255,215,0,0.15);border:1px solid var(--gold);border-radius:20px;padding:4px 14px;font-weight:800;font-size:0.9rem;color:var(--gold)}
@@ -142,7 +146,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;heigh
 .learn-more-link:hover{background:rgba(255,215,0,0.2)}
 
 /* RESULT SCREEN */
-#resultScreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;text-align:center}
 .result-emoji{font-size:5rem;animation:bounceIn 0.6s ease}
 .result-title{font-family:'Bangers',cursive;font-size:3rem;letter-spacing:3px;margin:10px 0;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .result-msg{color:var(--muted);font-size:1rem;margin-bottom:24px}
@@ -336,7 +339,10 @@ body{
 
     <div class="question-box">
       <div class="question-num" id="questionNum">Question 1</div>
-      <div class="question-text" id="questionText">Loading...</div>
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <div class="question-text" id="questionText" style="flex:1">Loading...</div>
+        <button onclick="speak(document.getElementById('questionText').textContent)" style="background:rgba(255,215,0,0.15);border:1px solid var(--gold);border-radius:8px;color:var(--gold);font-size:1rem;padding:6px 10px;cursor:pointer;flex-shrink:0;margin-top:2px" title="Read question aloud">🔊</button>
+      </div>
     </div>
 
     <div class="choices" id="choicesDiv"></div>
@@ -465,13 +471,37 @@ const CATALOGUE = {
     ],
     middle:[
       {q:'Solve: 2x + 5 = 13. What is x?',a:'4',choices:['3','4','5','6'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'Subtract 5 from both sides, then divide by 2!'},
+      {q:'Solve: 3x - 4 = 11. What is x?',a:'5',choices:['4','5','6','7'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'Add 4 to both sides, then divide by 3!'},
+      {q:'Solve: 4x + 1 = 21. What is x?',a:'5',choices:['4','5','6','7'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'Subtract 1 from both sides, then divide by 4!'},
       {q:'What is the slope of y = 3x + 2?',a:'3',choices:['2','3','5','3x'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'In y=mx+b, m is the slope!'},
+      {q:'What is the slope of y = -4x + 7?',a:'-4',choices:['-7','7','-4','4'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'In y=mx+b, m is the slope — including the sign!'},
+      {q:'What is the slope of y = 6x - 1?',a:'6',choices:['-1','1','6','-6'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'The coefficient of x is the slope!'},
       {q:'What is √144?',a:'12',choices:['11','12','13','14'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'12 × 12 = 144!'},
+      {q:'What is √225?',a:'15',choices:['13','14','15','16'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'15 × 15 = 225!'},
+      {q:'What is √196?',a:'14',choices:['12','13','14','15'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'14 × 14 = 196!'},
       {q:'What is 15% of 80?',a:'12',choices:['10','12','15','20'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'0.15 × 80 = 12!'},
+      {q:'What is 20% of 65?',a:'13',choices:['10','13','15','20'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'0.20 × 65 = 13!'},
+      {q:'What is 25% of 120?',a:'30',choices:['25','30','35','40'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'25% = 1/4, so 120 ÷ 4 = 30!'},
       {q:'What is the mean of: 4, 8, 6, 10, 2?',a:'6',choices:['5','6','7','8'],learnUrl:'https://www.khanacademy.org/math/statistics-probability',learnTip:'Sum=30, divide by 5 values = 6!'},
+      {q:'What is the mean of: 3, 7, 5, 9, 1?',a:'5',choices:['4','5','6','7'],learnUrl:'https://www.khanacademy.org/math/statistics-probability',learnTip:'Sum=25, divide by 5 values = 5!'},
+      {q:'What is the mean of: 10, 20, 30, 40, 50?',a:'30',choices:['25','30','35','40'],learnUrl:'https://www.khanacademy.org/math/statistics-probability',learnTip:'Sum=150, divide by 5 values = 30!'},
       {q:'What is the Pythagorean theorem?',a:'a² + b² = c²',choices:['a+b=c','a²+b²=c²','2a+2b=c','ab=c²'],learnUrl:'https://www.khanacademy.org/math/geometry',learnTip:'For right triangles: legs² sum = hypotenuse²!'},
+      {q:'A right triangle has legs 6 and 8. What is the hypotenuse?',a:'10',choices:['8','9','10','12'],learnUrl:'https://www.khanacademy.org/math/geometry',learnTip:'6²+8²=36+64=100, √100=10!'},
+      {q:'A right triangle has legs 5 and 12. What is the hypotenuse?',a:'13',choices:['11','12','13','15'],learnUrl:'https://www.khanacademy.org/math/geometry',learnTip:'5²+12²=25+144=169, √169=13!'},
       {q:'What is the volume of a cube with side 4?',a:'64',choices:['16','48','64','80'],learnUrl:'https://www.khanacademy.org/math/geometry',learnTip:'Volume = side³ = 4×4×4 = 64!'},
-      {q:'What is -3 + (-5)?',a:'-8',choices:['-2','-8','8','2'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'Both negative — add magnitudes and keep the sign!'}
+      {q:'What is the volume of a cube with side 3?',a:'27',choices:['9','18','27','36'],learnUrl:'https://www.khanacademy.org/math/geometry',learnTip:'Volume = side³ = 3×3×3 = 27!'},
+      {q:'What is the volume of a cube with side 5?',a:'125',choices:['25','75','100','125'],learnUrl:'https://www.khanacademy.org/math/geometry',learnTip:'Volume = side³ = 5×5×5 = 125!'},
+      {q:'What is the volume of a cube with side 2?',a:'8',choices:['4','6','8','12'],learnUrl:'https://www.khanacademy.org/math/geometry',learnTip:'Volume = side³ = 2×2×2 = 8!'},
+      {q:'What is -3 + (-5)?',a:'-8',choices:['-2','-8','8','2'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'Both negative — add magnitudes and keep the sign!'},
+      {q:'What is -7 + (-4)?',a:'-11',choices:['-3','-11','11','3'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'Both negative — 7+4=11, keep negative = -11!'},
+      {q:'What is -6 - (-2)?',a:'-4',choices:['-8','-4','4','8'],learnUrl:'https://www.khanacademy.org/math/algebra',learnTip:'Subtracting a negative = adding: -6+2 = -4!'},
+      {q:'What is the area of a triangle with base 8 and height 5?',a:'20',choices:['13','20','40','80'],learnUrl:'https://www.khanacademy.org/math/geometry',learnTip:'Area = ½ × base × height = ½ × 8 × 5 = 20!'},
+      {q:'What is the area of a triangle with base 6 and height 9?',a:'27',choices:['15','27','54','108'],learnUrl:'https://www.khanacademy.org/math/geometry',learnTip:'Area = ½ × base × height = ½ × 6 × 9 = 27!'},
+      {q:'What type of triangle has NO equal sides?',a:'Scalene',choices:['Isosceles','Scalene','Equilateral','Right'],learnUrl:'https://www.khanacademy.org/math/geometry',learnTip:'Scalene = all three sides are different lengths!'},
+      {q:'What type of triangle has exactly 2 equal sides?',a:'Isosceles',choices:['Isosceles','Scalene','Equilateral','Obtuse'],learnUrl:'https://www.khanacademy.org/math/geometry',learnTip:'Iso = same, sceles = legs — two equal legs!'},
+      {q:'What type of triangle has all sides equal?',a:'Equilateral',choices:['Isosceles','Scalene','Equilateral','Right'],learnUrl:'https://www.khanacademy.org/math/geometry',learnTip:'Equilateral = all sides AND all angles equal (60° each)!'},
+      {q:'What is the median of: 3, 7, 2, 9, 5?',a:'5',choices:['3','5','6','7'],learnUrl:'https://www.khanacademy.org/math/statistics-probability',learnTip:'Sort first: 2,3,5,7,9 — middle value is 5!'},
+      {q:'What is the mode of: 4, 7, 4, 9, 4, 7?',a:'4',choices:['4','7','9','No mode'],learnUrl:'https://www.khanacademy.org/math/statistics-probability',learnTip:'Mode = most frequent value — 4 appears 3 times!'}
     ],
     highschool:[
       {q:'What is the derivative of x²?',a:'2x',choices:['x','2x','x²','2'],learnUrl:'https://www.khanacademy.org/math/calculus-1',learnTip:'Power rule: bring down exponent, reduce by 1!'},
@@ -1283,9 +1313,7 @@ function startGame() {
 
   if (!activeSubjects.length) { alert('No questions found for this level/subject combo!'); return; }
 
-  // Switch screens
-  document.getElementById('setupScreen').classList.remove('active');
-  document.getElementById('gameScreen').classList.add('active');
+  showScreen('gameScreen');
 
   gameState = {
     playerHp: 100, playerMaxHp: 100,
@@ -1596,8 +1624,7 @@ function endByTime() {
 
 function showResult(won, reason) {
   clearInterval(timerInterval);
-  document.getElementById('gameScreen').classList.remove('active');
-  document.getElementById('resultScreen').classList.add('active');
+  showScreen('resultScreen');
 
   const icon = document.getElementById('resultEmoji');
   const title = document.getElementById('resultTitle');
@@ -1632,28 +1659,48 @@ function showResult(won, reason) {
   document.getElementById('rMonsters').textContent = '👾 ' + gameState.monstersDefeated;
 }
 
+// Central screen switcher — always scrolls to top, hides all others
+function showScreen(id) {
+  ['setupScreen','gameScreen','resultScreen','reviewScreen'].forEach(s => {
+    document.getElementById(s).classList.remove('active');
+  });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
 function playAgain() {
   clearInterval(timerInterval);
-  document.getElementById('resultScreen').classList.remove('active');
-  document.getElementById('reviewScreen').classList.remove('active');
-  document.getElementById('gameScreen').classList.remove('active');
-  document.getElementById('setupScreen').classList.add('active');
+  // Reset selections so setup cards are fresh
+  chosenLevel = null;
+  chosenSubjects = new Set();
+  chosenMinutes = 5;
+  // Re-render setup UI
+  document.getElementById('cardSubject').style.display = 'none';
+  document.getElementById('cardTime').style.display = 'none';
+  document.getElementById('summaryCard').style.display = 'none';
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('startBtn').textContent = '⚡ STRIKE!';
   document.getElementById('eyeHealthNote').style.display = 'none';
+  // Reset level button selection
+  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('selected'));
+  // Reset slider
+  const slider = document.getElementById('timeSlider');
+  slider.value = 5;
+  updateSlider(slider);
+  showScreen('setupScreen');
 }
 
 let currentFilter = 'all';
 
 function showReview() {
-  document.getElementById('resultScreen').classList.remove('active');
-  document.getElementById('reviewScreen').classList.add('active');
+  showScreen('reviewScreen');
   currentFilter = 'all';
   document.querySelectorAll('.filter-btn').forEach((b,i) => b.classList.toggle('active', i===0));
   renderReviewList('all');
 }
 
 function backToResult() {
-  document.getElementById('reviewScreen').classList.remove('active');
-  document.getElementById('resultScreen').classList.add('active');
+  showScreen('resultScreen');
 }
 
 function filterReview(filter, btn) {
