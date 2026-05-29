@@ -258,7 +258,7 @@ body{
   <div class="setup-header">
     <h1>⚡ MINDSTRIKE</h1>
     <p>Strike with your mind. Defeat monsters. Conquer knowledge.</p>
-    <div style="display:inline-block;margin-top:8px;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);border-radius:20px;padding:3px 14px;font-size:0.72rem;font-weight:800;color:var(--muted);letter-spacing:1px">v1.5 — May 29 2026</div>
+    <div style="display:inline-block;margin-top:8px;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);border-radius:20px;padding:3px 14px;font-size:0.72rem;font-weight:800;color:var(--muted);letter-spacing:1px">v1.6 — May 29 2026</div>
   </div>
 
   <!-- STEP 1: LEVEL -->
@@ -1308,11 +1308,14 @@ updateSlider(document.getElementById('timeSlider'));
 // GAME ENGINE
 // ═══════════════════════════════════════════
 function startGame() {
-  // Build active subjects list
+  // Fully reset from any previous game
+  activeSubjects = [];
+
+  // Build active subjects list fresh for the chosen level
   activeSubjects = [...chosenSubjects].map(name => {
     const cat = CATALOGUE[name]; if (!cat) return null;
     const qList = cat.questions[chosenLevel] || Object.values(cat.questions)[0] || [];
-    return { name, icon: cat.icon, enemies: cat.enemies, questions: qList };
+    return { name, icon: cat.icon, enemies: cat.enemies, questions: [...qList] }; // spread to clone
   }).filter(Boolean).filter(s => s.questions.length > 0);
 
   if (!activeSubjects.length) { alert('No questions found for this level/subject combo!'); return; }
@@ -1441,10 +1444,22 @@ function nextQuestion() {
   updateStreakBar();
 }
 
+function normalizeAnswer(s) {
+  return s.toString()
+    .toLowerCase()
+    .replace(/\s+/g, '')           // remove all whitespace
+    .replace(/[²³]/g, n => n === '²' ? '2' : '3')  // normalize superscripts
+    .replace(/[×✕]/g, '*')         // normalize multiply signs
+    .replace(/[÷]/g, '/')          // normalize divide signs
+    .replace(/['']/g, "'")         // normalize quotes
+    .replace(/[""]/g, '"')         // normalize double quotes
+    .trim();
+}
+
 function handleAnswer(chosen, btn) {
   if (gameState.answered || gameState.over) return;
   gameState.answered = true;
-  const correct = chosen === gameState.currentQ.a;
+  const correct = normalizeAnswer(chosen) === normalizeAnswer(gameState.currentQ.a);
 
   // Log for review screen
   gameState.questionLog.push({
@@ -1461,7 +1476,7 @@ function handleAnswer(chosen, btn) {
   // Mark correct answer
   document.querySelectorAll('.choice-btn').forEach(b => {
     const txt = b.querySelector('span:nth-child(2)');
-    if (txt && txt.textContent === gameState.currentQ.a) b.classList.add('correct');
+    if (txt && normalizeAnswer(txt.textContent) === normalizeAnswer(gameState.currentQ.a)) b.classList.add('correct');
     b.disabled = true;
   });
   if (!correct) btn.classList.add('wrong');
