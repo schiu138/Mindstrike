@@ -1326,8 +1326,9 @@ function startGame() {
     questionCount: 0,
     secondsLeft: chosenMinutes * 60,
     totalSeconds: chosenMinutes * 60,
-    qPool: {},        // shuffled non-repeating pools per subject
-    questionLog: [],  // {q, a, chosen, correct, learnUrl, learnTip} for review screen
+    qPool: {},
+    questionLog: [],
+    over: false,
   };
   // Build shuffled question pools — each question appears at most once per game
   activeSubjects.forEach((subj, i) => {
@@ -1383,34 +1384,30 @@ function loadEnemy() {
   nextQuestion();
 }
 
-function pickQuestion() {
-  const si = gameState.subjectIdx;
+function shufflePool(si) {
   const subj = activeSubjects[si];
-  // Use a per-subject pool that NEVER resets mid-game — once all seen, no more from this subject
-  if (!gameState.qPool[si]) {
-    // Shuffle all questions into a pool at game start (already done in startGame)
+  const indices = subj.questions.map((_,j) => j);
+  for (let k = indices.length - 1; k > 0; k--) {
+    const r = Math.floor(Math.random() * (k + 1));
+    [indices[k], indices[r]] = [indices[r], indices[k]];
   }
+  gameState.qPool[si] = indices;
+}
+
+function pickQuestion() {
+  if (gameState.over) return null;
+  const si = gameState.subjectIdx;
   const pool = gameState.qPool[si];
-  if (!pool.length) return null; // exhausted — caller handles this
-  return subj.questions[pool.shift()]; // take from front of shuffled pool, never repeats
+  // Pool exhausted — reshuffle for a new cycle (no repeats within each cycle)
+  if (!pool || !pool.length) shufflePool(si);
+  return activeSubjects[si].questions[gameState.qPool[si].shift()];
 }
 
 function nextQuestion() {
+  if (gameState.over) return;  // hard stop — timer fired or HP gone
   gameState.answered = false;
   const q = pickQuestion();
-  if (!q) {
-    // This subject's questions exhausted — move to next subject if possible
-    if (gameState.subjectIdx < activeSubjects.length - 1) {
-      gameState.subjectIdx++;
-      loadEnemy();
-      return;
-    } else {
-      // All questions across all subjects exhausted — end game
-      clearInterval(timerInterval);
-      showResult(gameState.playerHp >= Math.max(0, gameState.enemyHp), 'exhausted');
-      return;
-    }
-  }
+  if (!q) return; // safety — shouldn't happen now that pool reshuffles
   gameState.currentQ = q;
   gameState.questionCount++;
   const subj = activeSubjects[gameState.subjectIdx];
@@ -1438,7 +1435,7 @@ function nextQuestion() {
 }
 
 function handleAnswer(chosen, btn) {
-  if (gameState.answered) return;
+  if (gameState.answered || gameState.over) return;
   gameState.answered = true;
   const correct = chosen === gameState.currentQ.a;
 
@@ -1570,6 +1567,7 @@ function updateStreakBar() {
 }
 
 function checkBattleOver() {
+  if (gameState.over) return;
   if (gameState.playerHp <= 0) {
     clearInterval(timerInterval);
     setTimeout(() => showResult(false, 'died'), 700);
@@ -1618,11 +1616,13 @@ function showDmgPop(text, target) {
 }
 
 function endByTime() {
+  if (gameState.over) return;
   const won = gameState.playerHp >= Math.max(0, gameState.enemyHp);
   showResult(won, 'time');
 }
 
 function showResult(won, reason) {
+  gameState.over = true;  // FIRST — blocks all pending setTimeout callbacks
   clearInterval(timerInterval);
   showScreen('resultScreen');
 
