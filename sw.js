@@ -1,4 +1,4 @@
-const CACHE = 'mindstrike-v1';
+const CACHE = 'mindstrike-v1.5';
 const ASSETS = [
   './index.html',
   './manifest.json',
